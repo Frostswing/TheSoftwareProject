@@ -40,5 +40,10 @@ double **sym(double **X, int rows, int cols);
 double **ddg(double **A, int n);
 double **norm(double **A, int n);
 double **symnmf(double **H, double **W, int n, int k);
+double **multiplyMatrices(double **mat1, int rows1, int cols1, double **mat2, int rows2, int cols2);
+double **transposeMatrix(double **mat, int n, int d);
+double **calculation(double **H, double **W_H, double **H_HT_H, int H_n, int H_d);
+void copyMatrix(double **sourceMatrix, double **destinationMatrix, int rows, int cols);
+void freeMatrix(double **matrix, int rows)
 
 #endif /* SYM_NMF_H */

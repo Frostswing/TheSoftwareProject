@@ -182,6 +182,15 @@ ArrayInfo read_file_to_array(char *filename)
     return result;
 }
 /*endregion PUT_INPUT_IN_ARRAY*/
+// free matrix
+void freeMatrix(double **matrix, int rows)
+{
+    for (int i = 0; i < rows; ++i)
+    {
+        free(matrix[i]);
+    }
+    free(matrix);
+}
 
 /*region goals functions*/
 // Function to calculate and output the similarity matrix
@@ -308,53 +317,128 @@ double **norm(double **A, int n)
     return W;
 }
 
-double **symnmf(double **H, double **W, int n, int k)
+void updateH(double **W, double **old_H, int W_n, int old_H_n, int old_H_d, double **new_H)
 {
-    // Step 1.4.2: Update H
-    for (int iter = 0; iter < MAX_ITER; iter++)
+    double **H_transpose;
+    double **W_H;
+    double **H_HT;
+    double **H_HT_H;
+    double **result;
+
+    H_transpose = transposeMatrix(old_H, old_H_n, old_H_d);
+    W_H = multiplyMatrices(W, W_n, W_n, old_H, old_H_n, old_H_d);
+    H_HT = multiplyMatrices(old_H, old_H_n, old_H_d, H_transpose, old_H_d, old_H_n);
+    H_HT_H = multiplyMatrices(H_HT, old_H_n, old_H_n, old_H, old_H_n, old_H_d);
+    result = calculation(old_H, W_H, H_HT_H, old_H_n, old_H_d);
+    copyMatrix(result, new_H, old_H_n, old_H_d);
+
+    freeMatrix(H_transpose, old_H_d);
+    freeMatrix(W_H, W_n);
+    freeMatrix(H_HT, old_H_n);
+    freeMatrix(H_HT_H, old_H_n);
+    freeMatrix(result, old_H_n);
+}
+
+// mallocMatrix function
+double **mallocMatrix(int rows, int cols)
+{
+    int i;
+    double **matrix;
+    matrix = malloc(rows * sizeof(double *));
+    if (matrix == NULL)
     {
-        double diffNorm = 0.0;
-
-        for (int i = 0; i < n; i++)
+        printf("An Error Has Occurred 6");
+        exit(1);
+    }
+    for (i = 0; i < rows; i++)
+    {
+        matrix[i] = malloc(cols * sizeof(double));
+        if (matrix[i] == NULL)
         {
-            for (int j = 0; j < k; j++)
-            {
-                double numerator = 0.0;
-                double denominator = 0.0;
-
-                // Calculate (WH)ij
-                for (int l = 0; l < n; l++) // Make sure to loop over n here
-                {
-                    numerator += W[i][l] * H[l][j];
-                }
-
-                // Calculate (H(H^T)H)ij
-                for (int l = 0; l < n; l++)
-                {
-                    double sum_inner = 0.0;
-                    for (int m = 0; m < k; m++)
-                    {
-                        sum_inner += H[i][m] * H[l][m];
-                    }
-                    denominator += sum_inner * H[l][j];
-                }
-
-                double H_new = H[i][j] * (1 - BETA + BETA * (numerator / (denominator))); // Add EPSILON to prevent division by zero
-
-                // Calculate the Frobenius norm of the difference between H and H_new
-                diffNorm += pow(H_new - H[i][j], 2);
-
-                H[i][j] = H_new;
-            }
-        }
-
-        // Check for convergence
-        if (sqrt(diffNorm) < EPSILON)
-        {
-            break;
+            printf("An Error Has Occurred 7");
+            exit(1);
         }
     }
-    return H;
+    return matrix;
+}
+
+/* Function to transpose a matrix */
+double **transposeMatrix(double **mat, int n, int d)
+{
+    int i, j;
+    double **transposed;
+    transposed = mallocMatrix(d, n);
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < d; j++)
+        {
+            transposed[j][i] = mat[i][j];
+        }
+    }
+    return transposed;
+}
+
+double **multiplyMatrices(double **mat1, int rows1, int cols1, double **mat2, int rows2, int cols2)
+{
+    int i;
+    int j;
+    int k;
+    double **result;
+
+    /* Check if the matrices can be multiplied */
+
+    /* Allocate memory for the result matrix */
+    result = mallocMatrix(rows1, cols2);
+
+    /* Multiply the two matrices */
+    for (i = 0; i < rows1; i++)
+    {
+        for (j = 0; j < cols2; j++)
+        {
+            result[i][j] = 0;
+            for (k = 0; k < cols1; k++)
+            {
+                result[i][j] += mat1[i][k] * mat2[k][j];
+            }
+        }
+    }
+    return result;
+}
+
+double calculationPerCell(double h, double wh, double hhth)
+{
+    double result;
+    result = h * (1 - BETA + BETA * (wh / hhth));
+    return result;
+}
+
+double **calculation(double **H, double **W_H, double **H_HT_H, int H_n, int H_d)
+{
+    int i;
+    int j;
+    double **new_H;
+    new_H = mallocMatrix(H_n, H_d);
+    for (i = 0; i < H_n; i++)
+    {
+        for (j = 0; j < H_d; j++)
+        {
+            new_H[i][j] = calculationPerCell(H[i][j], W_H[i][j], H_HT_H[i][j]);
+        }
+    }
+    return new_H;
+}
+
+void copyMatrix(double **sourceMatrix, double **destinationMatrix, int rows, int cols)
+{
+    int i;
+    int j;
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < cols; j++)
+        {
+            destinationMatrix[i][j] = sourceMatrix[i][j];
+        }
+    }
 }
 
 /*endregion goals functions*/
