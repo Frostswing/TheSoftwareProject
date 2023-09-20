@@ -347,13 +347,7 @@ double **symnmf(double **H, double **W, int n, int k)
 
         // Calculate the difference between new_H and H for convergence check
         diff = euclideanDistance(new_H, H, n, k);
-
-        if (diff < EPSILON)
-        {
-            printf("iter=%d\n", iteration);
-            break;
-        }
-
+        
         // Otherwise, set H to new_H for next iteration and update previous_diff
         for (int i = 0; i < n; i++)
         {
@@ -363,6 +357,12 @@ double **symnmf(double **H, double **W, int n, int k)
             }
         }
         iteration++;
+
+        if (diff < EPSILON)
+        {
+            printf("iter=%d\n", iteration);
+            break;
+        }
     }
 
     freeMatrix(new_H, n); // Free the allocated memory for new_H
