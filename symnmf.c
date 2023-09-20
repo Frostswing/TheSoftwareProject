@@ -5,9 +5,9 @@
 #include "symnmf.h"
 
 /*region VARS*/
-int dimensionOfVector = 0;
-int numberOfVectors = 0;
-int K = 0;
+int dimensionOfVector;
+int numberOfVectors;
+int K;
 /*endregion VARS*/
 
 /*region PUT_INPUT_IN_ARRAY*/
@@ -316,6 +316,67 @@ double **norm(double **A, int n)
 
     return W;
 }
+double euclideanDistance(double** mat1, double** mat2, int rows, int cols) {
+    double sum = 0.0;
+    int i;
+    int j;
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            double diff = mat1[i][j] - mat2[i][j];
+            sum += diff * diff;
+        }
+    }
+    return sum;
+}
+double **symnmf(double **H, double **W, int n, int k)
+{
+    // Step 1.4.2: Update H
+    for (int iter = 0; iter < MAX_ITER; iter++)
+    {
+        double diffNorm = 0.0;
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < k; j++)
+            {
+                double numerator = 0.0;
+                double denominator = 0.0;
+
+                // Calculate (WH)ij
+                for (int l = 0; l < n; l++) // Make sure to loop over n here
+                {
+                    numerator += W[i][l] * H[l][j];
+                }
+
+                // Calculate (H(H^T)H)ij
+                for (int l = 0; l < n; l++)
+                {
+                    double sum_inner = 0.0;
+                    for (int m = 0; m < k; m++)
+                    {
+                        sum_inner += H[i][m] * H[l][m];
+                    }
+                    denominator += sum_inner * H[l][j];
+                }
+
+                double H_new = H[i][j] * (1 - BETA + BETA * (numerator / (denominator))); // Add EPSILON to prevent division by zero
+
+                // Calculate the Frobenius norm of the difference between H and H_new
+                diffNorm += pow(H_new - H[i][j], 2);
+
+                H[i][j] = H_new;
+            }
+        }
+
+        // Check for convergence
+        if (sqrt(diffNorm) < EPSILON)
+        {
+            break;
+        }
+    }
+    return H;
+}
+
 
 void updateH(double **W, double **old_H, int W_n, int old_H_n, int old_H_d, double **new_H)
 {

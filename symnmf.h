@@ -44,6 +44,6 @@ double **multiplyMatrices(double **mat1, int rows1, int cols1, double **mat2, in
 double **transposeMatrix(double **mat, int n, int d);
 double **calculation(double **H, double **W_H, double **H_HT_H, int H_n, int H_d);
 void copyMatrix(double **sourceMatrix, double **destinationMatrix, int rows, int cols);
-void freeMatrix(double **matrix, int rows)
+void freeMatrix(double **matrix, int rows);
 
 #endif /* SYM_NMF_H */
