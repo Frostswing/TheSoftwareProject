@@ -316,12 +316,15 @@ double **norm(double **A, int n)
 
     return W;
 }
-double euclideanDistance(double** mat1, double** mat2, int rows, int cols) {
+double euclideanDistance(double **mat1, double **mat2, int rows, int cols)
+{
     double sum = 0.0;
     int i;
     int j;
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < cols; j++) {
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < cols; j++)
+        {
             double diff = mat1[i][j] - mat2[i][j];
             sum += diff * diff;
         }
@@ -330,53 +333,42 @@ double euclideanDistance(double** mat1, double** mat2, int rows, int cols) {
 }
 double **symnmf(double **H, double **W, int n, int k)
 {
-    // Step 1.4.2: Update H
-    for (int iter = 0; iter < MAX_ITER; iter++)
-    {
-        double diffNorm = 0.0;
+    double diff; // arbitrary large number
+    int iteration = 0;
 
+    // Allocate space for the new H matrix
+    double **new_H = mallocMatrix(n, k);
+
+    // Iterate until convergence or maximum iterations
+    while (iteration < MAX_ITER)
+    {
+        // Update H matrix
+        updateH(W, H, n, n, k, new_H);
+
+        // Calculate the difference between new_H and H for convergence check
+        diff = euclideanDistance(new_H, H, n, k);
+
+        if (diff < EPSILON)
+        {
+            printf("iter=%d\n", iteration);
+            break;
+        }
+
+        // Otherwise, set H to new_H for next iteration and update previous_diff
         for (int i = 0; i < n; i++)
         {
             for (int j = 0; j < k; j++)
             {
-                double numerator = 0.0;
-                double denominator = 0.0;
-
-                // Calculate (WH)ij
-                for (int l = 0; l < n; l++) // Make sure to loop over n here
-                {
-                    numerator += W[i][l] * H[l][j];
-                }
-
-                // Calculate (H(H^T)H)ij
-                for (int l = 0; l < n; l++)
-                {
-                    double sum_inner = 0.0;
-                    for (int m = 0; m < k; m++)
-                    {
-                        sum_inner += H[i][m] * H[l][m];
-                    }
-                    denominator += sum_inner * H[l][j];
-                }
-
-                double H_new = H[i][j] * (1 - BETA + BETA * (numerator / (denominator))); // Add EPSILON to prevent division by zero
-
-                // Calculate the Frobenius norm of the difference between H and H_new
-                diffNorm += pow(H_new - H[i][j], 2);
-
-                H[i][j] = H_new;
+                H[i][j] = new_H[i][j];
             }
         }
-
-        // Check for convergence
-        if (sqrt(diffNorm) < EPSILON)
-        {
-            break;
-        }
+        iteration++;
     }
-    return H;
-}
 
+    freeMatrix(new_H, n); // Free the allocated memory for new_H
+
+    return H; // Return the final H matrix
+}
 
 void updateH(double **W, double **old_H, int W_n, int old_H_n, int old_H_d, double **new_H)
 {
