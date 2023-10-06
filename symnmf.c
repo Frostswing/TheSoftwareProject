@@ -252,7 +252,11 @@ double **norm(double **A, int n)
     }
     free(D_half_inv);
     free(temp);
-
+    for (i = 0; i < n; ++i)
+    {
+        free(D[i]);
+    }
+    free(D);
     return W;
 }
 
@@ -427,6 +431,7 @@ int main(int argc, char *argv[])
         {
             free(tempmatrix[i]);
         }
+        free(tempmatrix);
     }
     else if (strcmp(mode, "norm") == 0)
     {
@@ -436,6 +441,7 @@ int main(int argc, char *argv[])
         {
             free(tempmatrix[i]);
         }
+        free(tempmatrix);
     }
     else
     {
@@ -458,9 +464,11 @@ int main(int argc, char *argv[])
     {
         free(datapoints[i]);
     }
+    free(datapoints);
     for (i = 0; i < number_datapoints; i++)
     {
         free(outputmatrix[i]);
     }
+    free(outputmatrix);
     return 0;
 }
