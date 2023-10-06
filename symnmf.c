@@ -62,6 +62,19 @@ void freeList(LinkedList *list)
     list->length = 0;
 }
 
+void freeArrayInfo(ArrayInfo *info)
+{
+    int i;
+    for (i = 0; i < info->rows; i++)
+    {
+        free(info->array[i]);
+    }
+    free(info->array);
+    info->array = NULL;
+    info->rows = 0;
+    info->cols = 0;
+}
+
 /* Function to print the linked list */
 void printList(LinkedList *list)
 {
@@ -252,7 +265,7 @@ double **norm(double **A, int n)
     }
     free(D_half_inv);
     free(temp);
-
+    free(D);
     return W;
 }
 
@@ -337,14 +350,16 @@ double **allocateMatrix(int rows, int cols)
 {
     int i;
     double **matrix = (double **)malloc(rows * sizeof(double *));
-    if (matrix == NULL) {
+    if (matrix == NULL)
+    {
         printAndExit();
     }
 
     for (i = 0; i < rows; ++i)
     {
         matrix[i] = (double *)malloc(cols * sizeof(double));
-        if (matrix[i] == NULL) {
+        if (matrix[i] == NULL)
+        {
             printAndExit();
         }
     }
@@ -415,17 +430,17 @@ int main(int argc, char *argv[])
     /*call the goal func based on the mode*/
     if (strcmp(mode, "sym") == 0)
     {
-        outputmatrix = sym(datapoints, number_datapoints, dimensionOfVector);
+        // outputmatrix = sym(datapoints, number_datapoints, dimensionOfVector);
     }
     else if (strcmp(mode, "ddg") == 0)
     {
-        tempmatrix = sym(datapoints, number_datapoints, dimensionOfVector);
-        outputmatrix = ddg(tempmatrix, number_datapoints);
+        // tempmatrix = sym(datapoints, number_datapoints, dimensionOfVector);
+        // outputmatrix = ddg(tempmatrix, number_datapoints);
     }
     else if (strcmp(mode, "norm") == 0)
     {
-        tempmatrix = sym(datapoints, number_datapoints, dimensionOfVector);
-        outputmatrix = norm(tempmatrix, number_datapoints);
+        // tempmatrix = sym(datapoints, number_datapoints, dimensionOfVector);
+        // outputmatrix = norm(tempmatrix, number_datapoints);
     }
     else
     {
@@ -434,16 +449,29 @@ int main(int argc, char *argv[])
     }
 
     /*print outputmatrix*/
-    for (i = 0; i < number_datapoints; i++)
+    // for (i = 0; i < number_datapoints; i++)
+    // {
+    //     for (j = 0; j < number_datapoints; j++)
+    //     {
+    //         if (j != 0)
+    //             printf(",");
+    //         printf("%.4f", outputmatrix[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+
     {
-        for (j = 0; j < number_datapoints; j++)
+        for (i = 0; i < number_datapoints; i++)
         {
-            if (j != 0)
-                printf(",");
-            printf("%.4f", outputmatrix[i][j]);
+            if (datapoints[i] != NULL)
+            {
+                free(datapoints[i]);
+            }
         }
-        printf("\n");
+        if (datapoints != NULL)
+        {
+            free(datapoints);
+        }
     }
     return 0;
 }
-/*endregion MAIN*/
